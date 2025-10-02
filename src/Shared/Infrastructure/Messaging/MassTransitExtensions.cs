@@ -4,6 +4,8 @@ using Shared.Contracts.StateMachines;
 using MongoDB.Driver;
 using Shared.Contracts.Persistence;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace Shared.Infrastructure.Messaging;
 
@@ -13,6 +15,8 @@ public static class MassTransitExtensions
         this IServiceCollection services,
         Action<IBusRegistrationConfigurator> configureConsumers)
     {
+        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+        BsonSerializer.RegisterSerializer(new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("Shared.Contracts")));
         services.AddSingleton<IMongoClient>(sp => new MongoClient("mongodb://localhost:27017"));
         services.AddSingleton<IMongoDatabase>(sp =>
         {
