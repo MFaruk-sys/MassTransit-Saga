@@ -1,7 +1,6 @@
 using MassTransit;
 using Shared.Contracts.Events;
 using Shared.Contracts.Persistence;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Shared.Contracts.StateMachines;
 
@@ -17,39 +16,30 @@ public class OrderStateMachine : MassTransitStateMachine<OrderState>
 
         Initially(
             When(OrderSubmitted)
-                .ThenAsync(async context =>
+                .Then(context =>
                 {
                     context.Saga.CustomerId = context.Message.CustomerId;
                     context.Saga.Amount = context.Message.Amount;
                     context.Saga.CreatedAt = context.Message.SubmittedAt;
-
-                    var serviceProvider = context.GetPayload<IServiceProvider>();
-                    var store = serviceProvider.GetRequiredService<IEventStore>();
-                    await store.SaveEventAsync(context.Saga.CorrelationId, context.Message);
                 })
+                .Activity(x => x.OfType<StoreEventActivity<OrderState, OrderSubmitted>>())
                 .TransitionTo(Submitted));
 
         During(Submitted,
             When(PaymentCompleted)
-                .ThenAsync(async context =>
+                .Then(context =>
                 {
                     context.Saga.PaymentId = context.Message.PaymentId;
                     context.Saga.CompletedAt = context.Message.CompletedAt;
-
-                    var serviceProvider = context.GetPayload<IServiceProvider>();
-                    var store = serviceProvider.GetRequiredService<IEventStore>();
-                    await store.SaveEventAsync(context.Saga.CorrelationId, context.Message);
                 })
+                .Activity(x => x.OfType<StoreEventActivity<OrderState, PaymentCompleted>>())
                 .TransitionTo(Completed),
             When(PaymentFailed)
-                .ThenAsync(async context =>
+                .Then(context =>
                 {
                     context.Saga.PaymentFailureReason = context.Message.Reason;
-
-                    var serviceProvider = context.GetPayload<IServiceProvider>();
-                    var store = serviceProvider.GetRequiredService<IEventStore>();
-                    await store.SaveEventAsync(context.Saga.CorrelationId, context.Message);
                 })
+                .Activity(x => x.OfType<StoreEventActivity<OrderState, PaymentFailed>>())
                 .TransitionTo(Failed));
     }
 

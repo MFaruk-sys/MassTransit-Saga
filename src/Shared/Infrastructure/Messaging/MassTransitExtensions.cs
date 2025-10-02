@@ -6,6 +6,7 @@ using Shared.Contracts.Persistence;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using Shared.Contracts.Persistence;
 
 namespace Shared.Infrastructure.Messaging;
 
@@ -26,6 +27,7 @@ public static class MassTransitExtensions
         services.AddSingleton<IEventStore, MongoEventStore>();
         services.AddMassTransit(x =>
         {
+            x.AddActivitiesFromNamespaceContaining(typeof(StoreEventActivity<,>));
             x.AddSagaStateMachine<OrderStateMachine, OrderState>()
                 .MongoDbRepository(r =>
                 {
