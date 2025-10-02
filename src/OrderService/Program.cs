@@ -19,8 +19,7 @@ builder.Services.AddCustomLogging();
 // Add MassTransit with State Machine
 builder.Services.AddCustomMassTransit(x =>
 {
-    x.AddSagaStateMachine<OrderStateMachine, OrderState>()
-        .InMemoryRepository();
+    // No consumers to add in OrderService for now
 });
 
 var app = builder.Build();

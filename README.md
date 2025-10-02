@@ -69,7 +69,7 @@ src/
 
 4. Submit an order (using Swagger UI or curl):
    ```bash
-   curl -X POST http://localhost:5000/orders \
+   curl -X POST http://localhost:5248/orders \
    -H "Content-Type: application/json" \
    -d '{"customerId": "customer123", "amount": 100.00}'
    ```
